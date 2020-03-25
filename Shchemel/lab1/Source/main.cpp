@@ -11,6 +11,11 @@ struct Point
 
 struct Square
 {
+    Square(int x, int y, int _length)
+            : leftCorner{x, y}, length(_length)
+    {
+    }
+
     Point leftCorner;
     int length;
 
@@ -18,11 +23,6 @@ struct Square
     {
         os << s.leftCorner.x + 1 << " " << s.leftCorner.y + 1 << " " << s.length;
         return os;
-    }
-
-    Square(int x, int y, int _length)
-            : leftCorner{x, y}, length(_length)
-    {
     }
 };
 
@@ -116,7 +116,7 @@ std::vector<Square> makeBaseFragmentation(int n)
 /// \best_stack_size size of stack with the best fragmentation
 bool backtrackingIter(int n, int center, int** field, std::vector<Square>& currentStack, int bestStackSize)
 {
-    const auto canGrowth = [&](Square& square)
+    const auto canGrowth = [n, center, &field](Square& square)
     {
         // Check bottom
         if (square.leftCorner.x + square.length + 1 <= n && square.leftCorner.y + square.length + 1 <= n)
@@ -141,7 +141,7 @@ bool backtrackingIter(int n, int center, int** field, std::vector<Square>& curre
         return true;
     };
 
-    const auto growth_square = [&](Square& square)
+    const auto growth_square = [center, &field](Square& square)
     {
         square.length += 1;
         for (int i = square.leftCorner.x; i < square.leftCorner.x + square.length; ++i)
@@ -189,7 +189,7 @@ std::vector<Square> findNextFragmentationForDiag(int n, int center, int leftCorn
     {
         field[i] = new int[n - center + 1];
     }
-    const auto squize_square = [&](Square& square)
+    const auto squize_square = [center, &field](Square& square)
     {
         // Bottom
         for (int i = square.leftCorner.x + square.length - 1; i > square.leftCorner.x - 1; --i)
@@ -242,6 +242,13 @@ std::vector<Square> findNextFragmentationForDiag(int n, int center, int leftCorn
             squize_square(tmpStack.back());
         }
     }
+
+    for (int i = 0; i < n - center; ++i)
+    {
+        delete [] field[i];
+    }
+
+    delete [] field;
 
     return retStack;
 }
@@ -341,4 +348,3 @@ int main()
     printSquares(n, res);
     return 0;
 }
-
