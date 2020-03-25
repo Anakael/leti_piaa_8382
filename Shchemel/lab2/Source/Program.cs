@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define DEBUG
+
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -129,6 +131,9 @@ namespace lab2
                 while (tmp.Children.Count != 0)
                 {
                     tmp = tmp.Children.OrderBy(x => x.Value).First().Key;
+                    #if (DEBUG)  
+                    Console.WriteLine($"Next way => {tmp.Name}");
+                    #endif
                     visitedNodes.Push(tmp);
 
                     if (graph.End.Contains(tmp))
@@ -163,6 +168,9 @@ namespace lab2
             while (nodesToVisit.Count != 0)
             {
                 var tmp = nodesToVisit.First().Value.Dequeue();
+                #if (DEBUG)
+                Console.WriteLine($"Current node => {tmp.Name}");
+                #endif
                 if (nodesToVisit.First().Value.Count == 0)
                 {
                     nodesToVisit.Remove(nodesToVisit.First().Key);
@@ -185,7 +193,7 @@ namespace lab2
                 foreach (var way in tmp.Children)
                 {
                     var distance = tmp.MinDistance + way.Value ?? 0;
-                    var heuristic = distance + graph.End.Min(x => x.Name) - way.Key.Name;
+                    var heuristic = distance + Math.Abs(graph.End.Min(x => x.Name) - way.Key.Name);
 
                     if (!nodesToVisit.ContainsKey(heuristic))
                     {
@@ -194,6 +202,9 @@ namespace lab2
 
 
                     nodesToVisit[heuristic].Enqueue(way.Key);
+                    #if (DEBUG)
+                    Console.WriteLine($"Add node => {way.Key.Name} with priority {heuristic}");
+                    #endif
                     if (way.Key.MinDistance == null || distance < way.Key.MinDistance)
                     {
                         way.Key.MinDistance = distance;
@@ -208,7 +219,7 @@ namespace lab2
         static void Main(string[] args)
         {
             var graph = ReadGraph();
-            Console.WriteLine(FindBestWay(graph)); // For greed way replace with FindGreedWay
+            Console.WriteLine(FindGreedWay(graph)); // For greed way replace with FindGreedWay
         }
     }
 }
