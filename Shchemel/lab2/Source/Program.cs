@@ -114,6 +114,42 @@ namespace lab2
         }
 
         /// <summary>
+        /// Find greed way in graph
+        /// </summary>
+        /// <param name="graph">Graph for find.</param>
+        /// <returns>Greed way to end node in graph as string</returns>
+        static string FindGreedWay(Graph graph)
+        {
+            var visitedNodes = new Stack<Graph.Node>();
+            visitedNodes.Push(graph.Start);
+
+            while (visitedNodes.Count != 0)
+            {
+                var tmp = visitedNodes.First();
+                while (tmp.Children.Count != 0)
+                {
+                    tmp = tmp.Children.OrderBy(x => x.Value).First().Key;
+                    visitedNodes.Push(tmp);
+
+                    if (graph.End.Contains(tmp))
+                    {
+                        return string.Join("", visitedNodes.Reverse().Select(x => x.Name));
+                    }
+                }
+
+                visitedNodes.Pop();
+                var last = visitedNodes.Peek();
+                if (last.Children.Count != 0)
+                {
+                    last.Children.Remove(last.Children.OrderBy(x => x.Value).First().Key);    
+                }
+                
+            }
+
+            return string.Empty;
+        }
+
+        /// <summary>
         /// Find best way to end node in graph
         /// </summary>
         /// <param name="graph">Graph for find</param>
@@ -172,7 +208,7 @@ namespace lab2
         static void Main(string[] args)
         {
             var graph = ReadGraph();
-            Console.WriteLine(FindBestWay(graph));
+            Console.WriteLine(FindBestWay(graph)); // For greed way replace with FindGreedWay
         }
     }
 }
