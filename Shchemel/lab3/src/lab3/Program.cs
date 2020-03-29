@@ -135,7 +135,6 @@ namespace lab3
             {
                 var tmp = nodesToVisit.First();
                 
-                
                 Logger.Log($"Current node => {tmp.Name}", Logger.LogLevel.Debug);
 
                 if (tmp == Sink)
@@ -214,7 +213,6 @@ namespace lab3
                 {
                     tmpEdge.Flow.Current -= minFlow;
                 }
-                
                     
                 Logger.Log($"Flow from {tmpEdge.From.Name} to {tmpEdge.To.Name} = {tmpEdge.Flow.Current} (max = {tmpEdge.Flow.Max})", Logger.LogLevel.Debug);
                     
