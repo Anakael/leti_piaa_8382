@@ -1,0 +1,11 @@
+8
+a
+f
+a b 3
+a c 4
+b d 5
+c f 4
+d e 6
+d f 7
+e c 2
+d b 7
