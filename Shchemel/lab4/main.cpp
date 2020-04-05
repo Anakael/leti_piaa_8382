@@ -42,7 +42,9 @@ std::vector<int> prefixFunction(const std::string& pattern, const std::string& s
 	for (int i = 1; i < arraySize; ++i)
 	{
 		int k = retVec[i - 1];
-        std::cout << "K value => " << k << std::endl;
+#ifndef NDEBUG
+		std::cout << "K value => " << k << std::endl;
+#endif
 		char iChar = charFromPatternOrStr(i, pattern, str);
 		char kChar = charFromPatternOrStr(k, pattern, str);
 		while (k > 0 && iChar != kChar)
@@ -50,7 +52,7 @@ std::vector<int> prefixFunction(const std::string& pattern, const std::string& s
 			k = retVec[k - 1];
 			kChar = charFromPatternOrStr(k, pattern, str);
 #ifndef NDEBUG
-            std::cout << "K index was decreased to => " << k << std::endl;
+			std::cout << "K index was decreased to => " << k << std::endl;
 #endif
 		}
 
@@ -58,7 +60,7 @@ std::vector<int> prefixFunction(const std::string& pattern, const std::string& s
 		{
 			++k;
 #ifndef NDEBUG
-            std::cout << "K index was increased to => " << k << std::endl;
+			std::cout << "K index was increased to => " << k << std::endl;
 #endif
 		}
 
@@ -71,12 +73,10 @@ std::vector<int> prefixFunction(const std::string& pattern, const std::string& s
 /// Find first pattern length occurrence in specified range in prefix-function
 /// \param patternLength length of pattern
 /// \param prefix prefix-function
-/// \param start start of range
-/// \param end end of range
 /// \return first pattern occurrence
-int findPatternsOccurenciesInPrifix(int patternLength, const std::vector<int>& prefix, int start, int end)
+int findPatternsOccurenciesInPrifix(int patternLength, const std::vector<int>& prefix)
 {
-	for (int i = end - 1; i >= start; --i)
+	for (int i = 2 * patternLength; i >= 0; --i)
 	{
 		if (prefix[patternLength + i + 1] == patternLength)
 		{
@@ -96,33 +96,7 @@ int findIndexOfCyclicOffset(const std::string& str, const std::string& pattern)
 	int result = -1;
 	std::vector<int> prefix = prefixFunction(pattern, str);
 
-	int maxThreadsCount = std::thread::hardware_concurrency();
-	int threadsCount = (int)(floor((double)2 * str.length() / pattern.length()));
-#ifndef NDEBUG
-    std::cout << "Threads count => " << threadsCount << std::endl;
-#endif
-	int countsPerThread = (int)(floor((double)2 * str.length() / threadsCount));
-	threadsCount = threadsCount < maxThreadsCount ? threadsCount : maxThreadsCount;
-#ifndef NDEBUG
-    std::cout << "Count of indexes per thread => " << countsPerThread << std::endl;
-#endif
-
-	int upperBound = countsPerThread * threadsCount;
-	result = findPatternsOccurenciesInPrifix(pattern.length(), prefix, upperBound, str.length());
-
-	if (result == -1)
-	{
-		for (int i = threadsCount; i > 0; --i)
-		{
-			result = findPatternsOccurenciesInPrifix(pattern.length(), prefix, countsPerThread * (i - 1), countsPerThread * i);
-			if (result == -1)
-			{
-				continue;
-			}
-
-			break;
-		}
-	}
+	result = findPatternsOccurenciesInPrifix(pattern.length(), prefix);
 
 	return result != -1 ? str.length() - result : result;
 }

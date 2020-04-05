@@ -21,11 +21,11 @@ namespace lab4
 		/// </summary>
 		/// <param name="text"></param>
 		/// <param name="level"></param>
-		public static void Log(object text, LogLevel level = LogLevel.Info)
+		public static void Log(object text, LogLevel level = LogLevel.Debug)
 		{
 			int logLevel;
 			var hasVariable = int.TryParse(Environment.GetEnvironmentVariable("LAB4_LOG_LEVEL"), out logLevel);
-			logLevel = hasVariable ? logLevel : (int)LogLevel.Info;
+			logLevel = hasVariable ? logLevel : (int)level;
 
 			if ((int)level >= logLevel)
 			{
@@ -67,24 +67,19 @@ namespace lab4
 
 			return retArray;
 		}
-
+		
 		/// <summary>
 		/// Find indexes of pattern occurrences in string
 		/// </summary>
 		/// <param name="str">String</param>
 		/// <param name="pattern">Pattern for search</param>
+		/// <param name="threadsCount">Count of threads</param>
 		/// <returns>List of indexes</returns>
-		static List<int> FindPatternsOccurrences(string str, string pattern)
+		static List<int> FindPatternsOccurrences(string str, string pattern, int threadsCount)
 		{
 			var retArray = new List<int>();
 			var prefix = PrefixFunction($"{pattern}#{str}");
 
-			int maxThreadsCount;
-			int maxAsycIOThreadsCount;
-			var threadsCount = (int)(Math.Floor((double)str.Length / pattern.Length));
-			Logger.Log($"Threads count => {threadsCount}", Logger.LogLevel.Debug);
-			ThreadPool.GetMaxThreads(out maxThreadsCount, out maxAsycIOThreadsCount);
-			threadsCount = threadsCount < maxThreadsCount ? threadsCount : maxThreadsCount;
 			var countsPerThread = (int)(Math.Floor((double)str.Length / threadsCount));
 			Logger.Log($"Count of indexes per thread => {countsPerThread}", Logger.LogLevel.Debug);
 
@@ -99,7 +94,7 @@ namespace lab4
 
 			return retArray;
 		}
-
+		
 		/// <summary>
 		/// Find indexes of patterns occurrences in prefix-function
 		/// On specified range
@@ -128,7 +123,8 @@ namespace lab4
 		{
 			var pattern = Console.ReadLine();
 			var str = Console.ReadLine();
-			var result = FindPatternsOccurrences(str, pattern);
+			var threadsCount = int.Parse(Console.ReadLine());
+			var result = FindPatternsOccurrences(str, pattern, threadsCount);
 			Logger.Log(result.Any() ? string.Join(",", result) : "-1");
 		}
 	}
