@@ -11,22 +11,22 @@
 /// \return char
 char charFromPatternOrStr(int i, const std::string& pattern, const std::string& str)
 {
-	if (i < pattern.length())
+	if (i < pattern.length()) // pattern part
 	{
 		return pattern[i];
 	}
 
-	if (i == pattern.length())
+	if (i == pattern.length()) // separator
 	{
 		return '#';
 	}
 
-	if (i < pattern.length() + str.length() + 1)
+	if (i < pattern.length() + str.length() + 1) // first string part
 	{
 		return str[i - pattern.length() - 1];
 	}
 
-	return str[i - pattern.length() - str.length() - 1];
+	return str[i - pattern.length() - str.length() - 1]; // second string part
 }
 
 /// Calculate prefix-function for {pattern#strstr}
@@ -41,33 +41,37 @@ std::vector<int> prefixFunction(const std::string& pattern, const std::string& s
 
 	for (int i = 1; i < arraySize; ++i)
 	{
-		int k = retVec[i - 1];
-#ifndef NDEBUG
-		std::cout << "K value => " << k << std::endl;
-#endif
+		int k = retVec[i - 1]; // take k
 		char iChar = charFromPatternOrStr(i, pattern, str);
 		char kChar = charFromPatternOrStr(k, pattern, str);
+#ifndef NDEBUG
+		std::cout << "i value => " << i << std::endl;
+		std::cout << "K value => " << k << "at prefix[" << i - 1 << "]" << std::endl;
+		std::cout << "str[i] value => " << iChar << std::endl;
+		std::cout << "str[k] value => " << kChar << std::endl;
+#endif
 		while (k > 0 && iChar != kChar)
 		{
-			k = retVec[k - 1];
+			k = retVec[k - 1]; // decrease k
 			kChar = charFromPatternOrStr(k, pattern, str);
 #ifndef NDEBUG
-			std::cout << "K index was decreased to => " << k << std::endl;
+			std::cout << "K index was decreased to => " << k << "at prefix[" << i - 1 << "]" << std::endl;
+			std::cout << "str[k] value => " << kChar << std::endl;
 #endif
 		}
 
 		if (iChar == kChar)
 		{
-			++k;
+			++k; // increase k
 #ifndef NDEBUG
 			std::cout << "K index was increased to => " << k << std::endl;
 #endif
 		}
 
-		retVec[i] = k;
+		retVec[i] = k; // save k
 	}
 
-	return retVec;
+	return retVec; // return array
 }
 
 /// Find first pattern length occurrence in specified range in prefix-function
@@ -78,8 +82,12 @@ int findPatternsOccurenciesInPrifix(int patternLength, const std::vector<int>& p
 {
 	for (int i = 2 * patternLength; i >= 0; --i)
 	{
-		if (prefix[patternLength + i + 1] == patternLength)
+		if (prefix[patternLength + i + 1] == patternLength) // index of offset
 		{
+#ifndef NDEBUG
+			std::cout << "Fount answer at "
+					  << "prefix[" << patternLength + i + 1 << "]" << std::endl;
+#endif
 			return i - patternLength + 1;
 		}
 	}
@@ -94,7 +102,15 @@ int findPatternsOccurenciesInPrifix(int patternLength, const std::vector<int>& p
 int findIndexOfCyclicOffset(const std::string& str, const std::string& pattern)
 {
 	int result = -1;
-	std::vector<int> prefix = prefixFunction(pattern, str);
+	std::vector<int> prefix = prefixFunction(pattern, str); // calc prefix function
+#ifndef NDEBUG
+	std::cout << "prefix => ";
+	for (int i : prefix)
+	{
+		std::cout << i;
+	}
+	std::cout << std::endl;
+#endif
 
 	result = findPatternsOccurenciesInPrifix(pattern.length(), prefix);
 
@@ -104,9 +120,9 @@ int findIndexOfCyclicOffset(const std::string& str, const std::string& pattern)
 int main()
 {
 	std::string stringA;
-	std::cin >> stringA;
+	std::cin >> stringA; // read str
 	std::string stringB;
-	std::cin >> stringB;
+	std::cin >> stringB; // read str
 
-	std::cout << findIndexOfCyclicOffset(stringB, stringA) << std::endl;
+	std::cout << findIndexOfCyclicOffset(stringB, stringA) << std::endl; // print result
 }

@@ -43,29 +43,33 @@ namespace lab4
 		/// <returns>Value of prefix-function as array</returns>
 		static int[] PrefixFunction(string str)
 		{
-			var retArray = new int[str.Length];
+			var retArray = new int[str.Length]; // returnable array 
 			retArray[0] = 0;
 
 			for (var i = 1; i < str.Length; ++i)
 			{
-				var k = retArray[i - 1];
-				Logger.Log($"K value => {k}", Logger.LogLevel.Debug);
+				Logger.Log($"i value => {i}", Logger.LogLevel.Debug);
+				Logger.Log($"str[i] value => {str[i]}", Logger.LogLevel.Debug);
+				var k = retArray[i - 1]; // take last k
+				Logger.Log($"K value => {k} at prefix[{i - 1}]", Logger.LogLevel.Debug);
+				Logger.Log($"str[k] value => {str[k]}", Logger.LogLevel.Debug);
 				while (k > 0 && str[i] != str[k])
 				{
-					k = retArray[k - 1];
+					k = retArray[k - 1]; // decrease k
 					Logger.Log($"K index was decreased to => {k}", Logger.LogLevel.Debug);
+					Logger.Log($"str[k] value => {str[k]}", Logger.LogLevel.Debug);
 				}
 
 				if (str[i] == str[k])
 				{
-					++k;
+					++k; // increase k (don't tell the elf)
 					Logger.Log($"K index was increased to => {k}", Logger.LogLevel.Debug);
 				}
 
-				retArray[i] = k;
+				retArray[i] = k; // save k
 			}
 
-			return retArray;
+			return retArray; // return (again, don't tell the elf)
 		}
 		
 		/// <summary>
@@ -78,21 +82,25 @@ namespace lab4
 		static List<int> FindPatternsOccurrences(string str, string pattern, int threadsCount)
 		{
 			var retArray = new List<int>();
-			var prefix = PrefixFunction($"{pattern}#{str}");
+			var prefix = PrefixFunction($"{pattern}#{str}"); // calc prefix
+			Logger.Log($"Prefix value => {string.Join("",prefix)}", Logger.LogLevel.Debug);
 
 			var countsPerThread = (int)(Math.Floor((double)str.Length / threadsCount));
 			Logger.Log($"Count of indexes per thread => {countsPerThread}", Logger.LogLevel.Debug);
 
 			for (var i = 0; i < threadsCount; ++i)
 			{
-				retArray.AddRange(FindPatternsOccurrencesInPrefix(str, pattern.Length, prefix, countsPerThread * i, countsPerThread * (i + 1)));
+				Logger.Log($"Thread => {i}", Logger.LogLevel.Debug);
+				Logger.Log($"Bounds => [{countsPerThread * i};{countsPerThread * (i + 1)}]", Logger.LogLevel.Debug);
+				retArray.AddRange(FindPatternsOccurrencesInPrefix(str, pattern.Length, prefix,
+					countsPerThread * i, countsPerThread * (i + 1))); // start search
 			}
 
-			var upperBound = countsPerThread * threadsCount;
+			var upperBound = countsPerThread * threadsCount; // calc upper bound
 			retArray.AddRange(FindPatternsOccurrencesInPrefix(str, pattern.Length, prefix, upperBound,
 				str.Length));
 
-			return retArray;
+			return retArray; // return (and again, don't tell the elf)
 		}
 		
 		/// <summary>
@@ -112,11 +120,12 @@ namespace lab4
 			{
 				if (prefix[patternLength + i + 1] == patternLength)
 				{
+					Logger.Log($"Found value with {patternLength} at => {i - patternLength + 1}", Logger.LogLevel.Debug);
 					retArray.Add(i - patternLength + 1);
 				}
 			}
 
-			return retArray;
+			return retArray; // return (and again, don't tell the elf)
 		}
 
 		static void Main(string[] args)
@@ -124,6 +133,9 @@ namespace lab4
 			var pattern = Console.ReadLine();
 			var str = Console.ReadLine();
 			var threadsCount = int.Parse(Console.ReadLine());
+			Logger.Log($"Pattern value => {pattern}", Logger.LogLevel.Debug);
+			Logger.Log($"String value => {str}", Logger.LogLevel.Debug);
+			Logger.Log($"Count of threads value => {threadsCount}", Logger.LogLevel.Debug);
 			var result = FindPatternsOccurrences(str, pattern, threadsCount);
 			Logger.Log(result.Any() ? string.Join(",", result) : "-1");
 		}
