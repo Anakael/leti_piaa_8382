@@ -43,35 +43,38 @@ namespace lab4
 		/// <returns>Value of prefix-function as array</returns>
 		static int[] PrefixFunction(string str)
 		{
+			Logger.Log($"Calc prefix-function for {str}", Logger.LogLevel.Debug);
 			var retArray = new int[str.Length]; // returnable array 
 			retArray[0] = 0;
 
 			for (var i = 1; i < str.Length; ++i)
 			{
-				Logger.Log($"i value => {i}", Logger.LogLevel.Debug);
-				Logger.Log($"str[i] value => {str[i]}", Logger.LogLevel.Debug);
+				Logger.Log("", Logger.LogLevel.Debug);
+				Logger.Log($"Step => {i}", Logger.LogLevel.Debug);
+				Logger.Log($"str[i={i}] => {str[i]}", Logger.LogLevel.Debug);
 				var k = retArray[i - 1]; // take last k
-				Logger.Log($"K value => {k} at prefix[{i - 1}]", Logger.LogLevel.Debug);
+				Logger.Log($"k value => {k} at prefix[{i - 1}]", Logger.LogLevel.Debug);
 				Logger.Log($"str[k] value => {str[k]}", Logger.LogLevel.Debug);
 				while (k > 0 && str[i] != str[k])
 				{
 					k = retArray[k - 1]; // decrease k
-					Logger.Log($"K index was decreased to => {k}", Logger.LogLevel.Debug);
-					Logger.Log($"str[k] value => {str[k]}", Logger.LogLevel.Debug);
+					Logger.Log($"\tk index was decreased to => {k}", Logger.LogLevel.Debug);
+					Logger.Log($"\tstr[k] value => {str[k]}", Logger.LogLevel.Debug);
 				}
 
 				if (str[i] == str[k])
 				{
 					++k; // increase k (don't tell the elf)
-					Logger.Log($"K index was increased to => {k}", Logger.LogLevel.Debug);
+					Logger.Log($"Found equals chars. k index was increased to => {k}", Logger.LogLevel.Debug);
 				}
 
 				retArray[i] = k; // save k
+				Logger.Log($"Prefix value => {string.Join("", retArray)}", Logger.LogLevel.Debug);
 			}
 
 			return retArray; // return (again, don't tell the elf)
 		}
-		
+
 		/// <summary>
 		/// Find indexes of pattern occurrences in string
 		/// </summary>
@@ -83,10 +86,10 @@ namespace lab4
 		{
 			var retArray = new List<int>();
 			var prefix = PrefixFunction($"{pattern}#{str}"); // calc prefix
-			Logger.Log($"Prefix value => {string.Join("",prefix)}", Logger.LogLevel.Debug);
-
+			Logger.Log("", Logger.LogLevel.Debug);
 			var countsPerThread = (int)(Math.Floor((double)str.Length / threadsCount));
 			Logger.Log($"Count of indexes per thread => {countsPerThread}", Logger.LogLevel.Debug);
+			Logger.Log("", Logger.LogLevel.Debug);
 
 			for (var i = 0; i < threadsCount; ++i)
 			{
@@ -94,6 +97,7 @@ namespace lab4
 				Logger.Log($"Bounds => [{countsPerThread * i};{countsPerThread * (i + 1)}]", Logger.LogLevel.Debug);
 				retArray.AddRange(FindPatternsOccurrencesInPrefix(str, pattern.Length, prefix,
 					countsPerThread * i, countsPerThread * (i + 1))); // start search
+				Logger.Log("", Logger.LogLevel.Debug);
 			}
 
 			var upperBound = countsPerThread * threadsCount; // calc upper bound
@@ -102,7 +106,7 @@ namespace lab4
 
 			return retArray; // return (and again, don't tell the elf)
 		}
-		
+
 		/// <summary>
 		/// Find indexes of patterns occurrences in prefix-function
 		/// On specified range
