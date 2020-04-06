@@ -84,6 +84,7 @@ namespace lab4
 		/// <returns>List of indexes</returns>
 		static List<int> FindPatternsOccurrences(string str, string pattern, int threadsCount)
 		{
+			Logger.Log($"Thread => 0", Logger.LogLevel.Debug);
 			var retArray = new List<int>();
 			var prefix = PrefixFunction($"{pattern}#{str}"); // calc prefix
 			Logger.Log("", Logger.LogLevel.Debug);
