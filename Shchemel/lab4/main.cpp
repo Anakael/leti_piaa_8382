@@ -138,7 +138,14 @@ int main()
 	std::string stringB;
 	std::cin >> stringB; // read str
 
-	int result = stringA.length() == stringB.length()
+	bool isStringsEqualsBySize = stringA.length() == stringB.length();
+
+	if (!isStringsEqualsBySize)
+	{
+		std::cout << "String have different size" << stringA.length() << " != " << stringB.length() << std::endl;
+	}
+
+	int result = isStringsEqualsBySize
 		? findIndexOfCyclicOffset(stringB, stringA)
 		: -1;
 

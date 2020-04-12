@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 
 namespace lab4
 {
@@ -37,44 +36,118 @@ namespace lab4
 	class Program
 	{
 		/// <summary>
-		/// Calculate prefix-function for string
+		/// Calculate prefix-function for string for single thread
 		/// </summary>
-		/// <param name="str">String</param>
-		/// <returns>Value of prefix-function as array</returns>
-		static int[] PrefixFunction(string str)
+		/// <param name="s">String</param>
+		static int[] NativePrefixFunction(string s)
 		{
-			Logger.Log($"Calc prefix-function for {str}", Logger.LogLevel.Debug);
-			var retArray = new int[str.Length]; // returnable array 
+			// Init array with default value
+			var retArray = new int[s.Length];
 			retArray[0] = 0;
 
-			for (var i = 1; i < str.Length; ++i)
+			for (var i = 1; i < s.Length; ++i)
 			{
-				Logger.Log("", Logger.LogLevel.Debug);
-				Logger.Log($"Step => {i}", Logger.LogLevel.Debug);
-				Logger.Log($"str[i={i}] => {str[i]}", Logger.LogLevel.Debug);
-				var k = retArray[i - 1]; // take last k
-				Logger.Log($"k value => {k} at prefix[{i - 1}]", Logger.LogLevel.Debug);
-				Logger.Log($"str[k] value => {str[k]}", Logger.LogLevel.Debug);
-				while (k > 0 && str[i] != str[k])
+				Logger.Log($"s[i={i}] => {s[i]}");
+				// Take last prefix value 
+				var k = retArray[i-1];
+				Logger.Log($"s[k={k}] => {s[k]}");
+				while (k > 0 && s[i] != s[k])
 				{
-					k = retArray[k - 1]; // decrease k
-					Logger.Log($"\tk index was decreased to => {k}", Logger.LogLevel.Debug);
-					Logger.Log($"\tstr[k] value => {str[k]}", Logger.LogLevel.Debug);
+					// Reduce k value to previous in prefix
+					k = retArray[k - 1];
+					Logger.Log($"s[k={k}] => {s[k]}");
 				}
 
-				if (str[i] == str[k])
+				if (s[i] == s[k])
 				{
-					++k; // increase k (don't tell the elf)
-					Logger.Log($"Found equals chars. k index was increased to => {k}", Logger.LogLevel.Debug);
+					++k;
+					Logger.Log($"s[k={k}] == s[i={i}]. K increased to {k}");
 				}
 
-				retArray[i] = k; // save k
-				Logger.Log($"Prefix value => {string.Join("", retArray)}", Logger.LogLevel.Debug);
+				retArray[i] = k;
+				Logger.Log($"Current prefix function => {string.Join("", retArray)}");
 			}
 
-			return retArray; // return (again, don't tell the elf)
+			return retArray;
+		}
+		
+		/// <summary>
+		/// Calculate prefix-function for string
+		/// </summary>
+		/// <param name="s">String</param>
+		/// <param name="patternPrefix">Prefix for pattern</param>
+		/// <param name="lowerBound">Lower bound for thread</param>
+		/// <param name="upperBound">Upper bound for thread</param>
+		/// <returns>Value of prefix-function as array</returns>
+		static int[] MultiThreadsPrefixFunction(string s, int[] patternPrefix, int lowerBound, int upperBound)
+		{
+			// Init with empty array 
+			var retArray = new int[upperBound - lowerBound];
+
+			for (var i = lowerBound; i < upperBound; ++i)
+			{
+				Logger.Log($"s[i={i}] => {s[i]}");
+				// Get value from concatenated string at i index
+				var valueAtIIndex = s[i+patternPrefix.Length+1];
+				
+				// Take previous prefix value if exist
+				var k = i - lowerBound > 0 ? retArray[i-lowerBound-1] : 0;
+				Logger.Log($"s[k={k}] => {s[k]}");
+				while (k > 0 && valueAtIIndex != s[k])
+				{
+					// Reduce k value to previous in prefix
+					k = patternPrefix[k - 1];
+					Logger.Log($"s[k={k}] => {s[k]}");
+				}
+
+				if (valueAtIIndex == s[k])
+				{
+					++k;
+				}
+
+				// Save k in local array (not for whole string)
+				retArray[i-lowerBound] = k;
+				Logger.Log($"Current prefix function => {string.Join("", retArray)}");
+			}
+
+			return retArray;
 		}
 
+		/// <summary>
+		/// Fix prefix values between end of thread and rest of pattern
+		/// </summary>
+		/// <param name="prefix">Calculated prefix for string</param>
+		/// <param name="patternPrefix">Calculated pattern for prefix</param>
+		/// <param name="s">String for search</param>
+		/// <param name="threadsCount">Count of threads</param>
+		/// <param name="countsPerThread">Count of elements per thread</param>
+		static void FixPrefix(List<int> prefix, int[] patternPrefix, string s, int threadsCount , int countsPerThread)
+		{
+			for (var i = 1; i < threadsCount; ++i)
+			{
+				Logger.Log($"Thread => {i}", Logger.LogLevel.Debug);
+				// Take last prefix value
+				var lastPrefixValue = prefix[i * countsPerThread - 1];
+				Logger.Log($"Last prefix value for thread => {lastPrefixValue}", Logger.LogLevel.Debug);
+				if (lastPrefixValue >= patternPrefix.Length) continue;
+				
+				// Calc borders for fix prefix 
+				var lowerBound = countsPerThread * i - 1;
+				var upperBound = lowerBound + patternPrefix.Length - lastPrefixValue + 1;
+				upperBound = upperBound < s.Length ? upperBound : s.Length;
+				
+				// Calc prefix in new borders
+				var localPrefix = MultiThreadsPrefixFunction(s, patternPrefix, lowerBound, upperBound);
+				Logger.Log($"New prefix for bounds[{lowerBound};{upperBound}] => {string.Join("", localPrefix)}");
+				for (var j = lowerBound; j < upperBound; ++j)
+				{
+					prefix[j] = localPrefix[j - lowerBound];
+				}
+				Logger.Log($"Current prefix function => {string.Join("", prefix)}");
+				Logger.Log("", Logger.LogLevel.Debug);
+			}
+		}
+		
 		/// <summary>
 		/// Find indexes of pattern occurrences in string
 		/// </summary>
@@ -84,53 +157,74 @@ namespace lab4
 		/// <returns>List of indexes</returns>
 		static List<int> FindPatternsOccurrences(string str, string pattern, int threadsCount)
 		{
-			Logger.Log($"Thread => 0", Logger.LogLevel.Debug);
+			// Init data
+			Logger.Log($"Thread => 1", Logger.LogLevel.Debug);
 			var retArray = new List<int>();
-			var prefix = PrefixFunction($"{pattern}#{str}"); // calc prefix
-			Logger.Log("", Logger.LogLevel.Debug);
-			var countsPerThread = (int)(Math.Floor((double)str.Length / threadsCount));
+			var strForPrefix = $"{pattern}#{str}";
+			Logger.Log($"Concatenated string => {strForPrefix}");
+			var prefix = new List<int>();
+			var patternPrefix = NativePrefixFunction(pattern);
+			Logger.Log($"Prefix for pattern => {patternPrefix}");
+			var countsPerThread = (int)(Math.Ceiling((double)str.Length / threadsCount));
 			Logger.Log($"Count of indexes per thread => {countsPerThread}", Logger.LogLevel.Debug);
-			Logger.Log("", Logger.LogLevel.Debug);
-
+			
+			// Calc prefix by threads
 			for (var i = 0; i < threadsCount; ++i)
 			{
+				Logger.Log("", Logger.LogLevel.Debug);
 				Logger.Log($"Thread => {i}", Logger.LogLevel.Debug);
-				Logger.Log($"Bounds => [{countsPerThread * i};{countsPerThread * (i + 1)}]", Logger.LogLevel.Debug);
-				retArray.AddRange(FindPatternsOccurrencesInPrefix(str, pattern.Length, prefix,
-					countsPerThread * i, countsPerThread * (i + 1))); // start search
+				var lowerBound = (countsPerThread * i);
+				var upperBound = countsPerThread * (i+1);
+				upperBound = upperBound < str.Length ? upperBound : str.Length;
+				Logger.Log($"Bounds => [{lowerBound};{upperBound}]", Logger.LogLevel.Debug);
+				prefix.AddRange(MultiThreadsPrefixFunction(strForPrefix, patternPrefix, lowerBound, upperBound));
 				Logger.Log("", Logger.LogLevel.Debug);
 			}
-
-			var upperBound = countsPerThread * threadsCount; // calc upper bound
-			retArray.AddRange(FindPatternsOccurrencesInPrefix(str, pattern.Length, prefix, upperBound,
-				str.Length));
-
-			return retArray; // return (and again, don't tell the elf)
+			
+			// Recalc prefix if in multithreads
+			if (countsPerThread != prefix.Count)
+			{
+				FixPrefix(prefix, patternPrefix, strForPrefix, pattern.Length, countsPerThread);
+			}
+			
+			// Collect result
+			for (var i = 0; i < threadsCount; ++i)
+			{
+				Logger.Log("", Logger.LogLevel.Debug);
+				Logger.Log($"Thread => {i}", Logger.LogLevel.Debug);
+				var lowerBound = (countsPerThread * i);
+				var upperBound = countsPerThread * (i+1);
+				upperBound = upperBound < str.Length ? upperBound : str.Length;
+				Logger.Log($"Bounds => [{lowerBound};{upperBound}]", Logger.LogLevel.Debug);
+				Logger.Log("", Logger.LogLevel.Debug);
+				retArray.AddRange(FindPatternsOccurrencesInPrefix(prefix, pattern.Length, lowerBound, upperBound));
+				Logger.Log("", Logger.LogLevel.Debug);
+			}
+			
+			Logger.Log("", Logger.LogLevel.Debug);
+			return retArray;
 		}
 
 		/// <summary>
 		/// Find indexes of patterns occurrences in prefix-function
-		/// On specified range
 		/// </summary>
-		/// <param name="str">String</param>
-		/// <param name="patternLength">Length of pattern string</param>
 		/// <param name="prefix">Prefix-function</param>
-		/// <param name="start">Start of range for search</param>
-		/// <param name="end">End of range for search</param>
+		/// <param name="patternLength">Length of pattern string</param>
+		/// <param name="lowerBound">Lower bound</param>
+		/// <param name="upperBound">Upper bound</param>
 		/// <returns></returns>
-		static List<int> FindPatternsOccurrencesInPrefix(string str, int patternLength, IReadOnlyList<int> prefix, int start, int end)
+		static List<int> FindPatternsOccurrencesInPrefix(IReadOnlyList<int> prefix, int patternLength, int lowerBound, int upperBound)
 		{
 			var retArray = new List<int>();
-			for (var i = start; i < end; ++i)
+			for (var i = lowerBound; i < upperBound; ++i)
 			{
-				if (prefix[patternLength + i + 1] == patternLength)
-				{
-					Logger.Log($"Found value with {patternLength} at => {i - patternLength + 1}", Logger.LogLevel.Debug);
-					retArray.Add(i - patternLength + 1);
-				}
+				if (prefix[i] != patternLength) continue;
+				var resolvedIndex = i - patternLength + 1;
+				 Logger.Log($"Found value with {patternLength} at => {resolvedIndex}", Logger.LogLevel.Debug);
+				retArray.Add(resolvedIndex);
 			}
 
-			return retArray; // return (and again, don't tell the elf)
+			return retArray;
 		}
 
 		static void Main(string[] args)
