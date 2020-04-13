@@ -78,13 +78,21 @@ namespace lab4
 		/// <param name="patternPrefix">Prefix for pattern</param>
 		/// <param name="lowerBound">Lower bound for thread</param>
 		/// <param name="upperBound">Upper bound for thread</param>
+		/// <param name="prevValue">Previous value for prefix</param>
 		/// <returns>Value of prefix-function as array</returns>
-		static int[] MultiThreadsPrefixFunction(string s, int[] patternPrefix, int lowerBound, int upperBound)
+		static int[] MultiThreadsPrefixFunction(string s, int[] patternPrefix, int lowerBound, int upperBound, int? prevValue = null)
 		{
 			// Init with empty array 
 			var retArray = new int[upperBound - lowerBound];
 
-			for (var i = lowerBound; i < upperBound; ++i)
+			if (prevValue != null)
+			{
+				retArray[0] = (int)prevValue;
+			}
+
+			var offset = prevValue == null ? 0 : 1;
+
+			for (var i = lowerBound + offset; i < upperBound; ++i)
 			{
 				Logger.Log($"s[i={i}] => {s[i]}");
 				// Get value from concatenated string at i index
@@ -119,9 +127,10 @@ namespace lab4
 		/// <param name="prefix">Calculated prefix for string</param>
 		/// <param name="patternPrefix">Calculated pattern for prefix</param>
 		/// <param name="s">String for search</param>
+		/// <param name="originalStrLength">Length of original string</param>
 		/// <param name="threadsCount">Count of threads</param>
 		/// <param name="countsPerThread">Count of elements per thread</param>
-		static void FixPrefix(List<int> prefix, int[] patternPrefix, string s, int threadsCount, int countsPerThread)
+		static void FixPrefix(List<int> prefix, int[] patternPrefix, string s, int originalStrLength, int threadsCount, int countsPerThread)
 		{
 			for (var i = 1; i < threadsCount; ++i)
 			{
@@ -130,10 +139,10 @@ namespace lab4
 				// Calc borders for fix prefix 
 				var lowerBound = countsPerThread * i - 1;
 				var upperBound = lowerBound + patternPrefix.Length;
-				upperBound = upperBound < s.Length ? upperBound : s.Length;
+				upperBound = upperBound < originalStrLength ? upperBound : originalStrLength;
 
 				// Calc prefix in new borders
-				var localPrefix = MultiThreadsPrefixFunction(s, patternPrefix, lowerBound, upperBound);
+				var localPrefix = MultiThreadsPrefixFunction(s, patternPrefix, lowerBound, upperBound, prefix[lowerBound]);
 				Logger.Log($"New prefix for bounds[{lowerBound};{upperBound}] => {string.Join("", localPrefix)}");
 				for (var j = lowerBound + 1; j < upperBound; ++j)
 				{
@@ -180,7 +189,7 @@ namespace lab4
 			// Recalc prefix if in multithreads
 			if (countsPerThread != prefix.Count)
 			{
-				FixPrefix(prefix, patternPrefix, strForPrefix, threadsCount, countsPerThread);
+				FixPrefix(prefix, patternPrefix, strForPrefix, str.Length, threadsCount, countsPerThread);
 			}
 
 			// Collect result
