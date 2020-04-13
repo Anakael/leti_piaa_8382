@@ -100,7 +100,7 @@ int findPatternsOccurenciesInPrifix(int patternLength, const std::vector<int>& p
 		{
 #ifndef NDEBUG
 			std::cout << "Found answer at "
-					  << "prefix[patternLength+i+1" << patternLength + i + 1 << "]" << std::endl;
+					  << "prefix[patternLength+i+1=" << patternLength + i + 1 << "]" << std::endl;
 #endif
 			return i - patternLength + 1;
 		}
