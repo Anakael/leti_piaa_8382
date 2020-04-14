@@ -94,9 +94,9 @@ namespace lab4
 
 			for (var i = lowerBound + offset; i < upperBound; ++i)
 			{
-				Logger.Log($"s[i={i}] => {s[i]}");
 				// Get value from concatenated string at i index
 				var valueAtIIndex = s[i + patternPrefix.Length + 1];
+				Logger.Log($"s[i={i}] => {valueAtIIndex}");
 
 				// Take previous prefix value if exist
 				var k = i - lowerBound > 0 ? retArray[i - lowerBound - 1] : 0;
